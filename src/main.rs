@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf, io::{self, Cursor}};
 use clap::{Parser, Subcommand};
 use indicatif::{ProgressBar, ProgressStyle};
 use regex::Regex;
-use reqwest::{Client, header::{HeaderMap, HeaderValue, AUTHORIZATION}};
+use reqwest::{Client, Proxy, header::{HeaderMap, HeaderValue, AUTHORIZATION}};
 use serde::{Deserialize, Serialize};
 use zip::ZipArchive;
 use futures_util::stream::StreamExt;
@@ -30,6 +30,7 @@ enum Command {
 struct Config {
     default_path: PathBuf,
     jira_url: String,
+    proxy: Option<String>,
     bearer_token: Option<String>,
     user_email: Option<String>,
     api_token: Option<String>,
@@ -50,6 +51,7 @@ impl Config {
             let default = Config {
                 default_path: home.join("logs"),
                 jira_url: "https://your-jira-server.com".to_string(),
+                proxy: None,
                 bearer_token: None,
                 user_email: None,
                 api_token: None,
@@ -111,8 +113,18 @@ async fn auth_request(client: &Client, config: &Config, url: &str) -> anyhow::Re
     }
 }
 
+fn create_http_client(config: &Config) -> Client {
+    if let Some(proxy_url) = &config.proxy {
+        Client::builder()
+            .proxy(Proxy::all(proxy_url).expect("Could not resolve proxy URL"))
+            .build().expect("Could not create HTTP client with specified proxy URL")
+    } else {
+        Client::new()
+    }
+}
+
 async fn fetch_attachments(config: &Config, issue: &str, dest: &PathBuf) -> anyhow::Result<()> {
-    let client = Client::new();
+    let client = create_http_client(&config);
 
     let url = format!("{}/rest/api/2/issue/{}?fields=attachment", config.jira_url, issue);
 
