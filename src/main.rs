@@ -34,7 +34,8 @@ struct Config {
     bearer_token: Option<String>,
     user_email: Option<String>,
     api_token: Option<String>,
-    logfile_regex: String
+    logfile_regex: String,
+    archive_regex: Option<String>
 }
 
 impl Config {
@@ -55,7 +56,8 @@ impl Config {
                 bearer_token: None,
                 user_email: None,
                 api_token: None,
-                logfile_regex: r".*\.(logcat|dlt)$".to_string()
+                logfile_regex: r".*\.(logcat|dlt|txt)$".to_string(),
+                archive_regex: None
             };
 
             let contents = serde_json::to_string_pretty(&default)?;
@@ -168,6 +170,7 @@ async fn fetch_attachments(config: &Config, issue: &str, dest: &PathBuf) -> anyh
 fn extract_logs(src: &PathBuf, dest: &PathBuf, config: &Config) -> anyhow::Result<()> {
     fs::create_dir_all(dest)?;
     let logfile_regex = Regex::new(&config.logfile_regex).unwrap();
+    let zipfile_regex = Regex::new(&config.archive_regex.as_deref().unwrap_or(&config.logfile_regex)).expect("No zip archive regex");
 
     for entry in fs::read_dir(src)? {
         let entry = entry?;
@@ -186,7 +189,7 @@ fn extract_logs(src: &PathBuf, dest: &PathBuf, config: &Config) -> anyhow::Resul
                     let mut f = zip.by_index(i)?;
                     let name = f.name().to_string();
 
-                    if logfile_regex.is_match(&name) {
+                    if zipfile_regex.is_match(&name) {
                         let out_path = dest.join(PathBuf::from(&name).file_name().unwrap());
                         let mut out = fs::File::create(&out_path)?;
                         io::copy(&mut f, &mut out)?;

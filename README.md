@@ -52,12 +52,13 @@ By default, `getlogs` creates and uses `~/.getlog/config.json` on first run. The
 
 ```json
 {
-  "default_path": "~/getlogs-data",        // Base directory for downloaded data
+  "default_path": "~/getlogs-data",         // Base directory for downloaded data
   "jira_url": "https://your-jira-instance", // Base URL of your Jira server
-  "bearer_token": "<token>",              // Preferred authentication method
-  "user_email": "<email>",                // Used if bearer_token is absent
-  "api_token": "<api_token>",             // Used if bearer_token is absent
-  "logfile_regex": "\\.log$"             // Pattern to identify log files
+  "bearer_token": "<token>",                // Preferred authentication method
+  "user_email": "<email>",                  // Used if bearer_token is absent
+  "api_token": "<api_token>",               // Used if bearer_token is absent
+  "logfile_regex": "\\.log$",               // Pattern to identify log files
+  "archive_regex": "\\.log$"                // Pattern to identify log files within archives (optional)
 }
 ```
 
@@ -66,6 +67,7 @@ By default, `getlogs` creates and uses `~/.getlog/config.json` on first run. The
 * **bearer\_token**: JWT or API token for authentication (preferred if provided).
 * **user\_email** and **api\_token**: Jira credentials; used only if `bearer_token` is not set.
 * **logfile\_regex**: Regular expression to match log file names (used during extraction).
+* **archive\_regex**: Regular expression to match log file names *within an archive* (used during extraction). This is in particular useful if archived log files follow another naming pattern.
 
 ## Examples
 ```bash
