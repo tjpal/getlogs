@@ -83,6 +83,8 @@ async fn main() -> anyhow::Result<()> {
         let base_path = PathBuf::from(&config.default_path).join(jira_id);
         fs::create_dir_all(&base_path)?;
 
+        println!("=== {} ===", jira_id);
+
         if matches!(cli.command, Command::Fetch | Command::All) {
             fetch_attachments(&config, jira_id, &base_path).await?;
         }
